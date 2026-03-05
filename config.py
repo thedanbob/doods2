@@ -54,7 +54,6 @@ class ServerConfig(BaseSettings):
     host: Optional[str] = "0.0.0.0"
     port: Optional[int] = 8080
     auth_key: Optional[str] = ''
-    metrics: Optional[bool] = True
     trace: Optional[bool] = False
     class Config(BaseSettings.Config):
         env_prefix = 'server_'

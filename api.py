@@ -10,7 +10,6 @@ from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from streamer import Streamer
 from concurrent.futures import ThreadPoolExecutor
-from prometheus_fastapi_instrumentator import Instrumentator
 
 import tracemalloc
 
@@ -22,17 +21,6 @@ class API():
         self.api = FastAPI()
         # Borrow the uvicorn logger because it's pretty.
         self.logger = logging.getLogger("doods.api")
-
-        # Enable metrics
-        if self.config.metrics:
-            self.instrumentator = Instrumentator(
-                should_ignore_untemplated=True,
-                should_instrument_requests_inprogress=True,
-                excluded_handlers=["/metrics"],
-                inprogress_name="inprogress",
-                inprogress_labels=True,
-            )
-            self.instrumentator.instrument(self.api).expose(self.api)
 
         if self.config.trace:
             tracemalloc.start()
