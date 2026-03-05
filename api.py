@@ -4,7 +4,7 @@ import json
 import base64
 import logging
 import asyncio
-import threading
+from uvicorn.config import LOGGING_CONFIG
 from fastapi import status, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -51,7 +51,7 @@ class API():
             if detect_request.image:
                 detect_response.image = base64.b64encode(detect_response.image)
             return detect_response
-        
+
         @self.api.websocket("/detect")
         async def detect_stream(websocket: WebSocket):
             await websocket.accept()
@@ -87,7 +87,7 @@ class API():
                     self.logger.error("Exception({0}):{1!r}".format(type(e).__name__, e.args))
 
             send_detect_responses_task = asyncio.create_task(send_detect_responses())
-            
+
             while True:
                 try:
                     detect_config = await websocket.receive_json()
@@ -118,10 +118,10 @@ class API():
         @self.api.get("/stream")
         async def stream(detect_request: str = '{}'):
             detect_request_dict = json.loads(detect_request)
-            detect_request = odrpc.DetectRequest(**detect_request_dict)
+            detect_request_dict = odrpc.DetectRequest(**detect_request_dict)
             # logger.info('stream request: %s', detect_request)
-            detect_request.image = ".jpg" # Must be jpg
-            return StreamingResponse(Streamer.mjpeg_streamer(Streamer(self.doods).start_stream(detect_request)), media_type="multipart/x-mixed-replace;boundary=frame")
+            detect_request_dict.image = ".jpg" # Must be jpg
+            return StreamingResponse(Streamer.mjpeg_streamer(Streamer(self.doods).start_stream(detect_request_dict)), media_type="multipart/x-mixed-replace;boundary=frame")
 
         @self.api.websocket("/stream")
         async def websocket_stream(websocket: WebSocket):
@@ -138,10 +138,10 @@ class API():
                     # If we requested an image, base64 encode it back to the user
                     if detect_request.image:
                         detect_response.image = base64.b64encode(detect_response.image).decode('utf-8')
-                    await websocket.send_json(detect_response.asdict(include_none=False))            
+                    await websocket.send_json(detect_response.asdict(include_none=False))
                     # Fake poll to maintain updated connection state
                     try:
-                        await asyncio.wait_for(websocket.receive_text(), 0.0001)   
+                        await asyncio.wait_for(websocket.receive_text(), 0.0001)
                     except asyncio.TimeoutError:
                         pass
 
@@ -163,7 +163,7 @@ class API():
                 int(current_mem // 1024), int(peak_mem // 1024), int(overhead // 1024)
             ) ]
             snapshot = tracemalloc.take_snapshot()
-            stats = snapshot.statistics('lineno')            
+            stats = snapshot.statistics('lineno')
             for trace in stats[:20]:
                 ret.append("%s" % (trace))
 
@@ -173,11 +173,10 @@ class API():
 
         # Mount the UI directory - must be last
         self.api.mount("/", StaticFiles(directory="html", html=True), name="static")
-        
+
     def run(self):
-        log_config = uvicorn.config.LOGGING_CONFIG
+        log_config = LOGGING_CONFIG
         log_config["formatters"]["access"]["fmt"] = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         log_config["formatters"]["default"]["fmt"] = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         log_config["loggers"]["uvicorn"]["propagate"] = False # Fix a bug in logging
-        uvicorn.run(self.api, host=self.config.host, port=self.config.port, log_config=log_config) 
-
+        uvicorn.run(self.api, host=self.config.host, port=self.config.port, log_config=log_config)
