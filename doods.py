@@ -150,7 +150,7 @@ class Doods:
         if ret.error:
             return ret
         # Detection duration in milliseconds.
-        ret.duration = (time.perf_counter() - start) * 1000
+        ret.duration = round((time.perf_counter() - start) * 1000)
 
         # Set the id
         ret.id = detect.id
