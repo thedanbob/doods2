@@ -5,10 +5,10 @@ class DoodsDetectorConfig(BaseSettings):
     name: str
     type: str
     modelFile: str
-    labelFile: Optional[str]
-    labelsStartFromZero: Optional[bool] = False
-    hwAccel: Optional[bool] = False
-    numThreads: Optional[int] = 2
+    labelFile: Optional[str] = None
+    labelsStartFromZero: bool = False
+    hwAccel: bool = False
+    numThreads: int = 2
 
 class DoodsBoxesConfig(BaseSettings):
     enabled: Optional[bool] = True
