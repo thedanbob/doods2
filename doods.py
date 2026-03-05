@@ -123,15 +123,18 @@ class Doods:
                 _, image = cap.read()
                 cap.release()
             else:
-                raise 'No Image'
-        
+                raise RuntimeError('Could not capture image from video stream')
+
         # Should be base64 encoded image
         else:
             # Decode the image
             image_data = base64.b64decode(detect.data)
             image_bytes = np.frombuffer(image_data, dtype=np.uint8)
             image = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
-        
+
+        if image is None:
+            raise RuntimeError('No image')
+
         # Handle preprocessing
         for process in detect.preprocess:
             if process == 'grayscale':
@@ -149,7 +152,7 @@ class Doods:
         # Detection duration in milliseconds.
         ret.duration = (time.perf_counter() - start) * 1000
 
-        # Set the id        
+        # Set the id
         ret.id = detect.id
         # Sort the detections by confidence
         ret.detections = sorted(ret.detections, key=lambda d: d.confidence, reverse=True)
@@ -177,7 +180,7 @@ class Doods:
                 global_labels.append("%s:%d" % (label, detect.detect[label]))
             if len(global_labels) > 0:
                 if self.config.globals.fontThickness:
-                    cv2.putText(image, ','.join(global_labels), (5, 15), font, 
+                    cv2.putText(image, ','.join(global_labels), (5, 15), font,
                         self.config.globals.fontScale, tuple(self.config.globals.fontColor), self.config.globals.fontThickness, lineType)
 
         # Draw the region detection labels
@@ -187,23 +190,23 @@ class Doods:
                 for label in region.detect:
                     region_labels.append("%s:%d" % (label, region.detect[label]))
                 if self.config.regions.fontThickness:
-                    cv2.putText(image, ','.join(region_labels), (int(region.left*width), int(region.top*height)-2), 
+                    cv2.putText(image, ','.join(region_labels), (int(region.left*width), int(region.top*height)-2),
                         font, self.config.regions.fontScale, tuple(reversed(self.config.regions.fontColor)), self.config.regions.fontThickness, lineType)
                 if self.config.regions.boxThickness:
-                    cv2.rectangle(image, (int(region.left*width), int(region.top*height)), (int(region.right*width), int(region.bottom*height)), 
+                    cv2.rectangle(image, (int(region.left*width), int(region.top*height)), (int(region.right*width), int(region.bottom*height)),
                         color=tuple(reversed(self.config.regions.boxColor)), thickness=self.config.regions.boxThickness)
 
         # Draw the detections
         if self.config.boxes.enabled:
             for detection in ret.detections:
                 if self.config.boxes.fontThickness:
-                    cv2.putText(image, "%s:%d" % (detection.label, detection.confidence), (int(detection.left*width), int(detection.bottom*height)-2), 
+                    cv2.putText(image, "%s:%d" % (detection.label, detection.confidence), (int(detection.left*width), int(detection.bottom*height)-2),
                         font, self.config.boxes.fontScale, tuple(reversed(self.config.boxes.fontColor)), self.config.boxes.fontThickness, lineType)
                 if self.config.boxes.boxThickness:
-                    cv2.rectangle(image, (int(detection.left*width), int(detection.top*height)), (int(detection.right*width), int(detection.bottom*height)), 
+                    cv2.rectangle(image, (int(detection.left*width), int(detection.top*height)), (int(detection.right*width), int(detection.bottom*height)),
                         color=tuple(reversed(self.config.boxes.boxColor)), thickness=self.config.boxes.boxThickness)
 
-        ret.image = cv2.imencode(detect.image, image)[1].tostring()
+        ret.image = cv2.imencode(detect.image, image)[1].tobytes()
         return ret
 
     # Filter the detections to the matches
