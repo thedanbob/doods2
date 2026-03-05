@@ -2,6 +2,7 @@ import os
 import yaml
 import argparse
 import logging
+import sys
 from api import API
 from mqtt import MQTT
 from config import Config
@@ -31,7 +32,7 @@ def unflatten_dict(d):
     return ret
 
 def hex_to_rgb(hex):
-  return tuple(int(hex.strip('#')[i:i+2], 16) for i in (0, 2, 4)) 
+    return [int(hex.strip('#')[i:i+2], 16) for i in (0, 2, 4)]
 
 def main():
     parser = argparse.ArgumentParser(description='DOODS2 - Dedicated Open Object Detection Service')
@@ -40,7 +41,7 @@ def main():
     args = parser.parse_args()
 
     # Use environment, followed by arguments, followed by default config.yaml
-    config_file = os.environ.get('CONFIG_FILE', args.config)
+    config_file = os.environ.get('CONFIG_FILE', args.config or 'config.yaml')
 
     # Load config file
     with open(config_file, 'r') as stream:
@@ -48,22 +49,26 @@ def main():
             config = Config(**unflatten_dict(yaml.safe_load(stream)))
         except yaml.YAMLError as exc:
             print(exc)
+            sys.exit('Failed to load config')
 
     # It's ugly and I'm sure there's a better way to do it, but if we specified colors as hex strings
     # convert them to color arrays.
-    if isinstance(config.doods.boxes.boxColor, str):
-        config.doods.boxes.boxColor = hex_to_rgb(config.doods.boxes.boxColor)
-    if isinstance(config.doods.boxes.fontColor, str):
-        config.doods.boxes.fontColor = hex_to_rgb(config.doods.boxes.fontColor)
-    if isinstance(config.doods.regions.boxColor, str):
-        config.doods.regions.boxColor = hex_to_rgb(config.doods.regions.boxColor)
-    if isinstance(config.doods.regions.fontColor, str):
-        config.doods.regions.fontColor = hex_to_rgb(config.doods.regions.fontColor)
-    if isinstance(config.doods.globals.fontColor, str):
-        config.doods.globals.fontColor = hex_to_rgb(config.doods.globals.fontColor)
+    if config.doods.boxes is not None:
+        if isinstance(config.doods.boxes.boxColor, str):
+            config.doods.boxes.boxColor = hex_to_rgb(config.doods.boxes.boxColor)
+        if isinstance(config.doods.boxes.fontColor, str):
+            config.doods.boxes.fontColor = hex_to_rgb(config.doods.boxes.fontColor)
+    if config.doods.regions is not None:
+        if isinstance(config.doods.regions.boxColor, str):
+            config.doods.regions.boxColor = hex_to_rgb(config.doods.regions.boxColor)
+        if isinstance(config.doods.regions.fontColor, str):
+            config.doods.regions.fontColor = hex_to_rgb(config.doods.regions.fontColor)
+    if config.doods.globals is not None:
+        if isinstance(config.doods.globals.fontColor, str):
+            config.doods.globals.fontColor = hex_to_rgb(config.doods.globals.fontColor)
 
     # Setup logging
-    level = logging.getLevelName(config.logger.level.upper())
+    level = config.logger.level.upper()
     logger = logging.getLogger("doods")
     logger.propagate = False
     logger.setLevel(level)

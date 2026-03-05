@@ -11,3 +11,4 @@ example.yaml
 exmqtt.yaml
 min.yaml
 __pycache__
+.venv

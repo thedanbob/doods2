@@ -10,7 +10,7 @@ class DoodsDetectorConfig(BaseSettings):
     labelsStartFromZero: Optional[bool] = False
     hwAccel: Optional[bool] = False
     numThreads: Optional[int] = 2
-    class Config:
+    class Config(BaseSettings.Config):
         extra = Extra.ignore
 
 class DoodsBoxesConfig(BaseSettings):
@@ -41,13 +41,13 @@ class DoodsConfig(BaseSettings):
     globals: Optional[DoodsGlobalsConfig] = DoodsGlobalsConfig()
     detectors: List[DoodsDetectorConfig]
     log: Optional[str] = 'detections'
-    class Config:
+    class Config(BaseSettings.Config):
         env_prefix = 'doods_'
         extra = Extra.ignore
 
 class LoggerConfig(BaseSettings):
-    level: Optional[str] = "info"
-    class Config:
+    level: str = "info"
+    class Config(BaseSettings.Config):
         env_prefix = 'logger_'
         extra = Extra.ignore
 
@@ -57,7 +57,7 @@ class ServerConfig(BaseSettings):
     auth_key: Optional[str] = ''
     metrics: Optional[bool] = True
     trace: Optional[bool] = False
-    class Config:
+    class Config(BaseSettings.Config):
         env_prefix = 'server_'
         extra = Extra.ignore
 
@@ -66,7 +66,7 @@ class MqttBrokerConfig(BaseSettings):
     port: Optional[int] = 1883
     user: Optional[str] = None
     password: Optional[str] = None
-    class Config:
+    class Config(BaseSettings.Config):
         env_prefix = 'mqttbroker_'
         extra = Extra.ignore
 
@@ -79,14 +79,14 @@ class MqttConfig(BaseSettings):
     api: Optional[MqttApiConfig]
     requests: Optional[List[MqttDetectRequest]] = []
     metrics: Optional[bool] = True
-    class Config:
+    class Config(BaseSettings.Config):
         env_prefix = 'mqtt_'
         extra = Extra.ignore
 
 class Config(BaseSettings):
-    logger: Optional[LoggerConfig] = LoggerConfig()
+    logger: LoggerConfig = LoggerConfig()
     server: Optional[ServerConfig] = ServerConfig()
     doods: DoodsConfig
     mqtt: Optional[MqttConfig]
-    class Config:
+    class Config(BaseSettings.Config):
         extra = Extra.ignore
