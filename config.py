@@ -1,5 +1,5 @@
 from typing import List, Optional, Union
-from pydantic import BaseSettings, Extra
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class DoodsDetectorConfig(BaseSettings):
     name: str
@@ -9,8 +9,6 @@ class DoodsDetectorConfig(BaseSettings):
     labelsStartFromZero: Optional[bool] = False
     hwAccel: Optional[bool] = False
     numThreads: Optional[int] = 2
-    class Config(BaseSettings.Config):
-        extra = Extra.ignore
 
 class DoodsBoxesConfig(BaseSettings):
     enabled: Optional[bool] = True
@@ -40,28 +38,26 @@ class DoodsConfig(BaseSettings):
     globals: Optional[DoodsGlobalsConfig] = DoodsGlobalsConfig()
     detectors: List[DoodsDetectorConfig]
     log: Optional[str] = 'detections'
-    class Config(BaseSettings.Config):
+    model_config = SettingsConfigDict(
         env_prefix = 'doods_'
-        extra = Extra.ignore
+    )
 
 class LoggerConfig(BaseSettings):
     level: str = "info"
-    class Config(BaseSettings.Config):
+    model_config = SettingsConfigDict(
         env_prefix = 'logger_'
-        extra = Extra.ignore
+    )
 
 class ServerConfig(BaseSettings):
     host: Optional[str] = "0.0.0.0"
     port: Optional[int] = 8080
     auth_key: Optional[str] = ''
     trace: Optional[bool] = False
-    class Config(BaseSettings.Config):
+    model_config = SettingsConfigDict(
         env_prefix = 'server_'
-        extra = Extra.ignore
+    )
 
 class Config(BaseSettings):
     logger: LoggerConfig = LoggerConfig()
     server: Optional[ServerConfig] = ServerConfig()
     doods: DoodsConfig
-    class Config(BaseSettings.Config):
-        extra = Extra.ignore
