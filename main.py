@@ -4,7 +4,6 @@ import argparse
 import logging
 import sys
 from api import API
-from mqtt import MQTT
 from config import Config
 from doods import Doods
 
@@ -37,7 +36,7 @@ def hex_to_rgb(hex):
 def main():
     parser = argparse.ArgumentParser(description='DOODS2 - Dedicated Open Object Detection Service')
     parser.add_argument('--config', '-c', help='Configuration File', default='config.yaml')
-    parser.add_argument('action', nargs='?', help='Action: api=Start REST api, mqtt=Start MQTT forwarder', default='api')
+    parser.add_argument('action', nargs='?', help='Action: api=Start REST api', default='api')
     args = parser.parse_args()
 
     # Use environment, followed by arguments, followed by default config.yaml
@@ -85,10 +84,6 @@ def main():
         # Start the server
         api = API(config.server, doods)
         api.run()
-    elif args.action == 'mqtt':
-        # Start the server
-        mqtt = MQTT(config.mqtt, doods, metrics_server_config=config.server)
-        mqtt.run()
     else:
         print('Unknown action: '+args.action)
 

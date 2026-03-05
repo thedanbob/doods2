@@ -24,13 +24,7 @@ class DetectRequest:
     data: str = ""
     preprocess: List[str] = field(default_factory=list)
     detect: Dict[str, float] = field(default_factory=dict)
-    regions: List[DetectRegion] = field(default_factory=list)    
-
-@dataclass
-class MqttDetectRequest(DetectRequest):
-    separate_detections: Optional[bool] = False
-    crop: Optional[bool] = False
-    binary_images: Optional[bool] = False
+    regions: List[DetectRegion] = field(default_factory=list)
 
 @dataclass
 class Detector:

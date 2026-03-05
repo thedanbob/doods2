@@ -8,7 +8,6 @@ private
 /models
 testing.yaml
 example.yaml
-exmqtt.yaml
 min.yaml
 __pycache__
 .venv

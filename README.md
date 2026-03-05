@@ -9,14 +9,14 @@ REST api endpoints as the original DOODS but it also includes endpoints for hand
 feedback as annotated video and websocket JSON detection data.
 
 Why Python you may ask... Well, lots of machine learning stuff is in Python and there is pretty good support for
-Object Detection and helpers in Python. Maintaining the code in Go was a huge pain. 
-DOODS2 is designed to have a compatible API specification with DOODS as well as adding some additional features. 
+Object Detection and helpers in Python. Maintaining the code in Go was a huge pain.
+DOODS2 is designed to have a compatible API specification with DOODS as well as adding some additional features.
 It's my hope that in Python I might get a little more interest from the community in maintaining it and adding features.
 
 DOODS2 drops support for gRPC as I doubt very much anyone used it anyways.
 
 # Quickstart in Docker
-On your local machine run: `docker run -it -p 8080:8080 snowzach/doods2:latest` and open a browser to http://localhost:8080 
+On your local machine run: `docker run -it -p 8080:8080 snowzach/doods2:latest` and open a browser to http://localhost:8080
 Try uploading an image file or passing it an RTSP video stream. You can make changes to the specification by referencing the [Detect Request](#detect-request) payload.
 
 Three detectors are included with the base image that you can try.
@@ -50,7 +50,7 @@ Every request to DOODS involves the Detect Request JSON object that looks like t
   "detector_name": "default",
   // Data is either base64 encoded image data for a single image, it may also be a URL to an image
   // For a stream it's expected to be a URL that can be read by ffmpeg. `rtsp://..` or `http://..` is typical.
-  // You can also provide a video URL to detect a single image. It will grab a single frame from the source to 
+  // You can also provide a video URL to detect a single image. It will grab a single frame from the source to
   // run detection on. (It may be kinda slow though)
   "data": "b64 or url",
   // The image option determines, for API calls that return an image, what format the image should be.
@@ -58,12 +58,12 @@ Every request to DOODS involves the Detect Request JSON object that looks like t
   "image": "jpeg",
   // The throtle option determines, for streaming API calls only, how often it should return results
   // in seconds. For example, 5 means return 1 result about every 5 seconds. A value of 0 indicates
-  // it should return results as fast as it can. 
+  // it should return results as fast as it can.
   "throttle": 5,
   // Ths is an optional list of strings of preprocessing functions to apply to the images. Each supported
   // option is listed below.
   "preprocess": [
-    // grayscale = changes the image to grayscale before processing  
+    // grayscale = changes the image to grayscale before processing
     "grayscale"
   ],
   // detect is an object of label->confidence matches that will be applied to the entire image
@@ -75,36 +75,23 @@ Every request to DOODS involves the Detect Request JSON object that looks like t
     "car": 60
   },
   // The regions array is a list of specific matches for areas within your image/video stream.
-  // When processing rules, the first detection rule to match wins. 
+  // When processing rules, the first detection rule to match wins.
   "regions": [
     // The top,left,bottom and right are float values from 0..1 that indicate a bounding box to look
     // for object detections. They are based on the image size. A 400x300 image with a bounding box
     // as shown in the example blow would look for objects inside the box of
     // {top: 300*0.1 = 30, left: 400*0.1 = 40, bottom: 300*0.9 = 270, right: 400*0.9 = 360}
     // The detect field is exactly how it's described above in the global detection option for you
-    // to specify the labels that you wish to match. 
-    // The covers boolean indicates if this region must completely cover the detected object or 
+    // to specify the labels that you wish to match.
+    // The covers boolean indicates if this region must completely cover the detected object or
     // not. If covers = true, then the detcted object must be completely inside of this region to match.
     // If covers = false than if any part of this object is inside of this region, it will match.
-    // If defined, the optional id field will be included in detections that this region matched.  NOTE: 
+    // If defined, the optional id field will be included in detections that this region matched.  NOTE:
     // only the first region (including the global detection) to match an object will be used.
     {"id": "someregion", "top": 0.1, "left": 0.1, "bottom": 0.9, "right": 0.9, "detect": {"*":50}, "covers": false}
     ...
   ],
-
-  // NOTE: Below fields are only available in requests configured as part of the MQTT configuration
-
-  // If separate_detections is true each detected object will be published separately into 
-  // a sub-topic based on its type (e.g doods/detect/requestid/regionid/person).  When False, the default,
-  // the whole DetectResponse object will be published to the request topic (e.g. doods/detect/requestid).
-  "separate_detections" : false,
-  // If crop is true and separate_detections is true requested images will be cropped to 
-  // the decection box.  Has no effect if separate_detections is false.
-  "crop": false,
-  // If binary_images is true requested images will be pubished as binary data 
-  // to a separate topic (e.g. doods/image/requestid) instead of base64 encoded into the response.
-  "binary_images" : false,
-}  
+}
 ```
 
 ## DETECT RESPONSE
@@ -113,11 +100,11 @@ Every request to DOODS involves the Detect Request JSON object that looks like t
   // This is the ID passed in the detect request.
   "id": "whatever",
   // If you specified a value for image in the detection request, this is the base64 encoded imge
-  // returned from the detection. It has all of the detectons bounding boxes marked with label and 
+  // returned from the detection. It has all of the detectons bounding boxes marked with label and
   // confidence.
   "image": "b64 data...",
-  // Detections is a list of all of the objects detected in the image after being passed through 
-  // all of the filters. The top,left,bottom and right values are floats from 0..1 describing a 
+  // Detections is a list of all of the objects detected in the image after being passed through
+  // all of the filters. The top,left,bottom and right values are floats from 0..1 describing a
   // bounding box of the object in the image. The label of the object and the confidence from 0..100
   // are also provided.
   "detections": [
@@ -146,11 +133,11 @@ with the detections.
 ### WS - /detect
 This is a websocket endpoint that works exactly how the `/detect` API works except that you may
 send in many JSON [Detect Request](#detect-request) messages and it will process them asynchronously
-and return the responses. You should use unique `id` field values in the request to tell the responses 
+and return the responses. You should use unique `id` field values in the request to tell the responses
 apart.
 
 ### POST /image
-This API call takes a JSON [Detect Request](#detect-request) in the POST body and returns an image as specified in the 
+This API call takes a JSON [Detect Request](#detect-request) in the POST body and returns an image as specified in the
 image propert of the Detect Request with all of the bounding boxes drawn with labels and confidence. This is equivalent
 of calling the POST /detect endpoint but only returning the image rather than all of the detection information as well.
 
@@ -158,11 +145,11 @@ of calling the POST /detect endpoint but only returning the image rather than al
 This endpoint takes a URL Encoded JSON [Detect Request](#detect-request) document as the `detect_request` query parameter. It expected the `data`
 value of the Detect Request to be a streaming video URL (like `rtsp://...`) It will connect to the stream and continuously
 process detections as fast as it can (or as dictated by the `throttle` parameter) and returns an MJPEG video stream
-suitable for viewing in most browsers. It's useful for testing. 
+suitable for viewing in most browsers. It's useful for testing.
 
 ### WS /stream
-This is a websocket endpoint where once connected expects you to send a single JSON [Detect Request](#detect-request). 
-In the request it's expected that the `data` parameter will be a streaming video URL (like `rtsp://...`) It will 
+This is a websocket endpoint where once connected expects you to send a single JSON [Detect Request](#detect-request).
+In the request it's expected that the `data` parameter will be a streaming video URL (like `rtsp://...`) It will
 connect to the stream and continuously process detections as fast as it can (or as dictated by the `throttle` parameter).
 It will return JSON [Detect Response](#detect-response) every time it processes a frame. Additionally, if you specified
 a value for the `image` parameter, it will include the base64 encoded image in the `image` part of the response with
@@ -212,8 +199,7 @@ doods:
     - name: pytorch
       type: pytorch
       modelFile: ultralytics/yolov5,yolov5s
-mqtt:
-  
+
 ```
 
 You can pass a new configuration file using an environment variable `CONFIG_FILE`. There is also a `--config` and `-c` command line option.
@@ -230,12 +216,12 @@ This allows you to set the host and port the DOODS2 server listens on.
 This lets you set the logging level of the server.
 
 ## DOODS - log
-This lets you set the logging of detections. 
+This lets you set the logging of detections.
 `detections` - Log detections (default)
 `all` - Log ALL detections (before apply the filters for regions, labels, etc)
 
 ## DOODS - boxes
-The boxes allows you to set if, when requesting an image be returned, will the detections be drawn with bounding boxes. 
+The boxes allows you to set if, when requesting an image be returned, will the detections be drawn with bounding boxes.
 The defaults are shown above. You can disable the boxes as well as set the box color and line thickness. The color is specified
 as a 3 value list of RGB values. The font scale, thickness and color can be set seprately.
 
@@ -244,7 +230,7 @@ This allows you to annotate returned images with the requested regions and globa
 You could use this to debug and then disable them when you are done if you don't want to see them in your images.
 
 # CLI Example
-Here's an example of how to call DOODS from the command line with a 1-Liner using curl with image data: 
+Here's an example of how to call DOODS from the command line with a 1-Liner using curl with image data:
 ```
 echo "{\"detector_name\":\"default\", \"detect\":{\"*\":60}, \"data\":\"`cat grace_hopper.png|base64 -w0`\"}" > /tmp/postdata.json && curl -d@/tmp/postdata.json -H "Content-Type: application/json" -X POST http://localhost:8080/detect
 ```
@@ -274,7 +260,7 @@ You can download models for the edgeTPU here: https://coral.ai/models/object-det
 
 # GPU Support
 NVidia GPU support is available in the `:amd64-gpu` tagged image. This requires the host machine have NVidia CUDA installed as well as
-Docker 19.03 and above with the `nvidia-container-toolkit`. 
+Docker 19.03 and above with the `nvidia-container-toolkit`.
 
 See this page on how to install the CUDA drives and the container toolkit: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 
@@ -307,10 +293,10 @@ There are currently 5 supported dectector formats
 
 ## Other Options
 - labelsStartFromZero: true - The labels file starts from index zero instead of 1 like most labels.
-  
-## Tensorflow Lite - .tflite 
+
+## Tensorflow Lite - .tflite
 Just download the file, make it available to dudes and put the path to the tflite model file
-in for the `modelFile` config option and the path to the text `labelsFile` in the config option. You can also set 
+in for the `modelFile` config option and the path to the text `labelsFile` in the config option. You can also set
 `hwAccel` if it's an `edgetpu.tflite` and of course you actually have a EdgeTPU connected.
 
 Tensorflow Lite is the one type you can use the `numThreads` argument with and it will create a pool of tflite models for
@@ -318,15 +304,15 @@ which to run detections. You can create as many as you want.
 
 ## Tensorflow 1 - .pb
 These are protobuf files that end in .pb. You just need to download them and usually un-tgz the archive and get the `.pb` file
-and provide it to DOODS along with the labels file. 
+and provide it to DOODS along with the labels file.
 
 There's a good list of these here: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md
 
 ## PyTorch - Automatically load from Torch Hub
 This allows you to pull models directly from github using the torch.hub system. https://pytorch.org/docs/stable/hub.html
 
-To configure these, for the model file specify the hub name and then the model separated by a comma. It will download and 
-load the model. 
+To configure these, for the model file specify the hub name and then the model separated by a comma. It will download and
+load the model.
 
 Example:
 `modelFile: ultralytics/yolov5,yolov5s`
@@ -367,37 +353,3 @@ as well and provide it's path in the `labelsFile` option.
 This is a model zoo for Tensorflow 2 models: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
 
 I think they are better but they generally are much slower and probably require a GPU to work in a reasonable amount of time.
-
-## MQTT Mode
-DOODS also supports a so called MQTT modes. In this mode, rather than listen via an HTTP api, it instead connects to an MQTT broker. 
-The config file will instead look like this:
-```
-mqtt:
-  broker:
-    host: 127.0.0.1
-    port: 1883
-    user: username     # optional
-    password: password # optional
-  api:
-    request_topic: doods2/request_topic
-    response_topic: doods2/response_topic
-  requests:
-    - id: first
-      detector_name: default
-      throttle: 2
-      detect:
-        "person": 40
-      data: rtsp://user:pass@whatever.com/stream1
-    - id: second
-      detector_name: tensorflow
-      throttle: 
-      detect:
-        "person": 40
-      data: rtsp://user:pass@whatever.com/stream2
-```
-
-You can then do a couple of things, you can send json formatted requests (same format as the HTTP API) to the request_topic and
-doods will respond on the response_topic. This is an asynchronous way to call doods via MQTT. The other thing you can do is 
-configure requests with streams (like RTSP) and it will read from the stream and stream back detections on the response_topic. This
-might be useful for an NVR service to get back responses as fast as the throttle settings. For instance, 5 means 1 detection every 5
-seconds. See the detection request section above for a list of all options. 
